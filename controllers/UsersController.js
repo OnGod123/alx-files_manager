@@ -1,3 +1,6 @@
+import UserController from '../controllers/UsersController.js'; 
+import dbClient from '../utils/db.js'; // Ensure correct path
+import redisClient from '../utils/redis.js'; // Ensure correct path
 import { MongoClient } from 'mongodb';
 import crypto from 'crypto';
 
