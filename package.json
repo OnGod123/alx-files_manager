@@ -5,8 +5,9 @@
   "main": "main.js",
   "type": "module",
   "scripts": {
-    "start-server": "node server.js",
+    "start": "node src/server.js",
     "dev": "nodemon main.js",
+     "build": "babel src --out-dir lib",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -16,5 +17,10 @@
     "express": "^4.19.2",
     "mongodb": "^6.8.0",
     "redis": "^4.7.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.25.6",
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.4"
   }
 }
