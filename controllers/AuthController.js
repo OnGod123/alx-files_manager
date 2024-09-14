@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import redisClient from '../utils/redis.js';
 import dbClient from '../utils/db.js';
+import crypto from 'crypto';
 
 const AuthController = {
   async getConnect(req, res) {

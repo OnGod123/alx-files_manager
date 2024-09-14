@@ -1,83 +1,66 @@
+// utils/db.js
 import { MongoClient } from 'mongodb';
 
-/**
- * DBClient class manages a connection to a MongoDB database and provides methods
- * to interact with specific collections.
- */
 class DBClient {
-  /**
-   * Initializes the DBClient with connection settings and connects to the MongoDB server.
-   */
   constructor() {
-    // Retrieve database configuration from environment variables or use default values.
-    const host = process.env.DB_HOST || 'localhost';
-    const port = process.env.DB_PORT || 27017;
-    const database = process.env.DB_DATABASE || 'files_manager';
-
-    // Construct the MongoDB URI.
-    const uri = `mongodb://${host}:${port}/${database}`;
-    
-    // Create a new MongoClient instance with the URI and options.
-    this.client = new MongoClient(uri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
+    this.host = process.env.DB_HOST || 'localhost';
+    this.port = process.env.DB_PORT || 27017;
+    this.database = process.env.DB_DATABASE || 'files_manager';
+    this.uri = `mongodb://${this.host}:${this.port}`;
+    this.client = new MongoClient(this.uri, {
+      serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds
     });
-
-    // Store the database name and initialize db to null.
-    this.databaseName = database;
-    this.db = null;
-
-    // Connect to the MongoDB server and initialize the database object.
-    this.client.connect()
-      .then(() => {
-        this.db = this.client.db(this.databaseName);
-        console.log('Connected to MongoDB');
-      })
-      .catch((err) => {
-        console.error('MongoDB connection error:', err);
-      });
+    this.connect();
   }
 
-  /**
-   * Checks if the MongoDB client is connected.
-   * @returns {boolean} - Returns true if the client is connected, otherwise false.
-   */
+  async connect() {
+    try {
+      await this.client.connect();
+      console.log('Connected to MongoDB');
+      this.db = this.client.db(this.database); // Initialize db property after connection
+    if (!this.db) {
+      throw new Error('Database instance is not initialized');
+    }
+    } catch (error) {
+      console.error('Failed to connect to MongoDB', error);
+    }
+  }
+
   isAlive() {
-    return this.client && this.client.isConnected();
+    return this.client && this.client.topology && this.client.topology.isConnected();
   }
 
-  /**
-   * Gets the number of documents in the 'users' collection.
-   * @returns {Promise<number>} - A promise that resolves to the count of documents in the 'users' collection.
-   * @throws {Error} - Throws an error if the client is not connected.
-   */
   async nbUsers() {
-    if (!this.isAlive()) {
-      throw new Error('MongoDB client is not connected');
+    try {
+      const db = this.client.db(this.database);
+      const collection = db.collection('users');
+      return await collection.countDocuments();
+    } catch (error) {
+      console.error('Error counting users:', error);
+      throw error;
     }
-
-    // Access the 'users' collection and return the count of documents.
-    const usersCollection = this.db.collection('users');
-    return usersCollection.countDocuments();
   }
 
-  /**
-   * Gets the number of documents in the 'files' collection.
-   * @returns {Promise<number>} - A promise that resolves to the count of documents in the 'files' collection.
-   * @throws {Error} - Throws an error if the client is not connected.
-   */
   async nbFiles() {
-    if (!this.isAlive()) {
-      throw new Error('MongoDB client is not connected');
+    try {
+      const db = this.client.db(this.database);
+      const collection = db.collection('files');
+      return await collection.countDocuments();
+    } catch (error) {
+      console.error('Error counting files:', error);
+      throw error;
     }
+  }
 
-    // Access the 'files' collection and return the count of documents.
-    const filesCollection = this.db.collection('files');
-    return filesCollection.countDocuments();
+  async close() {
+    try {
+      await this.client.close();
+    } catch (error) {
+      console.error('Error closing MongoDB connection:', error);
+      throw error;
+    }
   }
 }
 
-// Export an instance of DBClient for use in other modules.
 const dbClient = new DBClient();
 export default dbClient;
-
