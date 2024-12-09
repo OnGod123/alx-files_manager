@@ -47,17 +47,17 @@ class UsersController {
     try {
       const token = req.headers['x-token'];
       if (!token) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ error: 'token not gotten' });
       }
 
       const userId = await redisClient.get(`auth_${token}`);
       if (!userId) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ error: 'token not gotten from redis ' });
       }
 
       const user = await DBClient.db.collection('users').findOne({ _id: userId });
       if (!user) {
-        return res.status(401).json({ error: 'Unauthorized' });
+        return res.status(401).json({ error: 'not getting users' });
       }
 
       return res.status(200).json({
